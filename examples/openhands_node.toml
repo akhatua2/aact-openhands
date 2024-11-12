@@ -1,5 +1,5 @@
 redis_url = "redis://localhost:6379/0"
-extra_modules = ["openhands.openhands_node"]
+extra_modules = ["openhands_node.openhands_node"]
 
 [[nodes]]
 node_name = "runtime"
