@@ -37,7 +37,8 @@ class AgentAction(DataModel):
         description="whether to speak at this turn or choose to not do anything"
     )
     argument: str = Field(
-        description="the utterance if choose to speak, the expression or gesture if choose non-verbal communication, or the physical action if choose action"
+        description="the utterance if choose to speak, the expression or gesture if \
+            choose non-verbal communication, or the physical action if choose action"
     )
     path: Optional[str] = Field(description="path of file")
 

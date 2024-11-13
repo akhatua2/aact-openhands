@@ -144,7 +144,8 @@ class OpenHands(Node[DataModel, Text]):
             observation (AgentAction): The action to be executed.
 
         Returns:
-            Optional[Text]: The result of the action, or None if the runtime is not available.
+            Optional[Text]: The result of the action, or None if the 
+            runtime is not available.
         """
         if not self.runtime:
             logger.warning("Runtime is not initialized.")
@@ -168,7 +169,8 @@ class OpenHands(Node[DataModel, Text]):
         Creates an action based on the observation's action type.
 
         Args:
-            observation (AgentAction): The observation containing the action type and arguments.
+            observation (AgentAction): The observation containing the action 
+            type and arguments.
 
         Returns:
             Any: The created action.
@@ -236,7 +238,8 @@ class OpenHands(Node[DataModel, Text]):
             input_message (Message[DataModel]): The incoming message.
 
         Yields:
-            Tuple[str, Message[Zero]]: A tuple containing the channel and a zero message if the channel is not recognized.
+            Tuple[str, Message[Zero]]: A tuple containing the channel 
+            and a zero message if the channel is not recognized.
         """
         try:
             if input_channel in self.input_channel_types:
@@ -247,6 +250,7 @@ class OpenHands(Node[DataModel, Text]):
                 await self.queue.put(data_entry)
             else:
                 logger.warning(f"Unrecognized input channel: {input_channel}")
-                yield input_channel, Message[Text](data=Text(text="")) # type: ignore[call-arg]
+                yield input_channel, \
+                    Message[Text](data=Text(text="")) #type:ignore[call-arg]
         except Exception as e:
             logger.error(f"Error handling event: {e}")
