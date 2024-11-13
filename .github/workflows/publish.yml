@@ -18,59 +18,77 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Check out the repository
-        uses: actions/checkout@v2
+    - name: Check out the repository
+      uses: actions/checkout@v2
 
-      - name: Set up Python
-        uses: actions/setup-python@v2
-        with:
-          python-version: '3.12'  # Adjust this version as needed.
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: '3.12'  # Adjust this version as needed.
 
-      - name: Get the previous commit hash
-        id: prev-commit
-        run: |
+    - name: Check if there is a previous commit
+      id: check-prev-commit
+      run: |
+        git fetch --deepen=1 # Ensure we have enough history for HEAD^1
+        if git rev-parse HEAD^1; then
           echo "commit=$(git rev-parse HEAD^1)" >> $GITHUB_ENV
+          echo "previous_commit_found=true" >> $GITHUB_ENV
+        else
+          echo "No previous commit found."
+          echo "previous_commit_found=false" >> $GITHUB_ENV
+        fi
 
-      - name: Show current pyproject.toml
-        run: |
-          echo "Current pyproject.toml content:"
-          cat pyproject.toml
+    - name: Show current pyproject.toml
+      run: |
+        echo "Current pyproject.toml content:"
+        cat pyproject.toml
 
-      - name: Show previous pyproject.toml
-        run: |
+    - name: Show previous pyproject.toml (if exists)
+      run: |
+        if [ "${{ env.previous_commit_found }}" == "true" ]; then
           echo "Previous pyproject.toml content:"
           git show ${{ env.commit }}:pyproject.toml || echo "No previous pyproject.toml file found"
+        else
+          echo "No previous commit found."
+        fi
 
-      - name: Compare pyproject.toml version
-        id: version-check
-        run: |
+    - name: Compare pyproject.toml version
+      id: version-check
+      run: |
+        if [ "${{ env.previous_commit_found }}" == "true" ]; then
           PREV_VERSION=$(git show ${{ env.commit }}:pyproject.toml | grep '^version = ' | sed 's/version = "\(.*\)"/\1/') || PREV_VERSION="not_found"
-          CURR_VERSION=$(grep '^version = ' pyproject.toml | sed 's/version = "\(.*\)"/\1/')
-          echo "Previous version: ${PREV_VERSION}"
-          echo "Current version: ${CURR_VERSION}"
-          if [ "${PREV_VERSION}" != "${CURR_VERSION}" ]; then
-            echo "Versions are different."
-            echo "VERSION_CHANGED=true" >> $GITHUB_ENV
-          else
-            echo "Versions are the same."
-            echo "VERSION_CHANGED=false" >> $GITHUB_ENV
-        shell: bash
+        else
+          PREV_VERSION="not_found"
+        fi
 
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install poetry
+        CURR_VERSION=$(grep '^version = ' pyproject.toml | sed 's/version = "\(.*\)"/\1/')
 
-      - name: Install project dependencies and build
-        run: |
-          poetry install
+        echo "Previous version: ${PREV_VERSION}"
+        echo "Current version: ${CURR_VERSION}"
 
-      - name: Check if publish step should run
-        run: echo "VERSION_CHANGED=$VERSION_CHANGED"
+        if [ "${PREV_VERSION}" != "${CURR_VERSION}" ] && [ "${PREV_VERSION}" != "not_found" ]; then
+          echo "Versions are different."
+          echo "VERSION_CHANGED=true" >> $GITHUB_ENV
+        else
+          echo "Versions are the same."
+          echo "VERSION_CHANGED=false" >> $GITHUB_ENV
+      shell: bash
 
-      - name: Publish to PyPI
-        if: env.VERSION_CHANGED == 'true'
-        env:
-          POETRY_PYPI_TOKEN_PYPI: ${{ secrets.PYPI_TOKEN }}
-        run: |
-          poetry publish --build --username __token__ --password $POETRY_PYPI_TOKEN_PYPI
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install poetry
+
+    - name: Install project dependencies and build
+      run: |
+        poetry install
+
+    - name: Check if publish step should run
+      run: echo "VERSION_CHANGED=${{ env.VERSION_CHANGED }}"
+
+    - name: Publish to PyPI
+      if: env.VERSION_CHANGED == 'true'
+      env:
+        POETRY_PYPI_TOKEN_PYPI: ${{ secrets.PYPI_TOKEN }}
+      run: |
+        poetry publish --build --username __token__ --password $POETRY_PYPI_TOKEN_PYPI
