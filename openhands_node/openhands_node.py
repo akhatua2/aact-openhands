@@ -75,30 +75,33 @@ class OpenHands(Node[DataModel, Text]):
         sandbox_remote_runtime_api_url = os.environ.get(
             "SANDBOX_REMOTE_RUNTIME_API_URL", ""
         )
-
+        
         if not modal_api_token_id or not modal_api_token_secret:
             logger.warning("Modal API tokens are not set. Check environment variables.")
-
-        config = AppConfig(
-            default_agent="CodeActAgent",
-            run_as_openhands=False,
-            max_iterations=3,
-            runtime="modal",
-            modal_api_token_id=modal_api_token_id,
-            modal_api_token_secret=modal_api_token_secret,
-            sandbox=SandboxConfig(
-                base_container_image=BASE_CONTAINER_IMAGE,
-                enable_auto_lint=True,
-                use_host_network=False,
-                timeout=50,
-                platform="linux/amd64",
-                api_key=allhands_api_key,
-                remote_runtime_api_url=sandbox_remote_runtime_api_url,
-                keep_remote_runtime_alive=False,
-            ),
-            workspace_base=None,
-            workspace_mount_path=None,
-        )
+        
+        try:
+            config = AppConfig(
+                default_agent="CodeActAgent",
+                run_as_openhands=False,
+                max_iterations=3,
+                runtime="modal",
+                modal_api_token_id=modal_api_token_id,
+                modal_api_token_secret=modal_api_token_secret,
+                sandbox=SandboxConfig(
+                    base_container_image=BASE_CONTAINER_IMAGE,
+                    enable_auto_lint=True,
+                    use_host_network=False,
+                    timeout=50,
+                    platform="linux/amd64",
+                    api_key=allhands_api_key,
+                    remote_runtime_api_url=sandbox_remote_runtime_api_url,
+                    keep_runtime_alive=False,
+                ),
+                workspace_base=None,
+                workspace_mount_path=None,
+            )
+        except Exception as e:
+            logger.error(f"Error creating AppConfig: {e}")
 
         agent_config = AgentConfig(
             codeact_enable_jupyter=True,
@@ -109,7 +112,10 @@ class OpenHands(Node[DataModel, Text]):
 
         self.runtime = create_runtime(config)
         if self.runtime:
-            call_async_from_sync(self.runtime.connect)
+            try:
+                call_async_from_sync(self.runtime.connect)
+            except Exception as e:
+                logger.error(f"Error connecting to runtime: {e}")
             logger.info("-" * 20)
             logger.info("RUNTIME CONNECTED")
             logger.info("-" * 20)

@@ -1,6 +1,4 @@
-# aact-openhands
-
-Openhands x AAct
+# Openhands x AAct
 
 ## Overview
 
@@ -37,3 +35,32 @@ To set up the project, ensure you have Python 3.12 installed. Then, follow these
 ### Running the OpenHands Node
 
 To run the OpenHands node with the provided configuration, use the following command:
+```bash
+poetry run aact run-dataflow examples/openhands_node.toml
+```
+
+Upon successful execution, you should see output similar to the following:
+
+```bash
+16:41:26 - openhands:INFO: openhands_node.py:120 - --------------------
+16:41:26 - openhands:INFO: openhands_node.py:121 - RUNTIME CONNECTED
+16:41:26 - openhands:INFO: openhands_node.py:122 - --------------------
+16:41:26 - openhands:INFO: openhands_node.py:127 - Runtime initialization took 157.77 seconds.
+```
+
+
+## Troubleshooting
+
+If you encounter a `ModuleNotFoundError`, ensure that:
+
+- The directory structure is correct, and `openhands_node.py` is located in the `openhands` directory.
+- The `openhands` directory contains an `__init__.py` file.
+- The `pyproject.toml` file includes the `openhands` package in the `[tool.poetry.packages]` section.
+
+## License
+
+This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
+
+## Contact
+
+For any questions or issues, please contact Arpandeep Khatua at arpandeepk@gmail.com.

@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "aact-openhands"
+name = "openhands_node"
 version = "0.0.1"
 description = "Openhands integrated with aact"
 authors = ["Arpandeep Khatua <arpandeepk@gmail.com>"]

@@ -1198,13 +1198,13 @@ torch = ["torch"]
 
 [[package]]
 name = "faker"
-version = "30.8.2"
+version = "30.9.0"
 description = "Faker is a Python package that generates fake data for you."
 optional = false
 python-versions = ">=3.8"
 files = [
-    {file = "Faker-30.8.2-py3-none-any.whl", hash = "sha256:4a82b2908cd19f3bba1a4da2060cc4eb18a40410ccdf9350d071d79dc92fe3ce"},
-    {file = "faker-30.8.2.tar.gz", hash = "sha256:aa31b52cdae3673d6a78b4857c7bcdc0e98f201a5cb77d7827fa9e6b5876da94"},
+    {file = "Faker-30.9.0-py3-none-any.whl", hash = "sha256:a5759cdf296d64ebd94caa70e660bec99106a630f753fa8a1991d7764f8626c7"},
+    {file = "faker-30.9.0.tar.gz", hash = "sha256:2458be873ce3d90e5450d3a23fa92c74eed7bd1c71ed1dd4476db48174993b85"},
 ]
 
 [package.dependencies]
@@ -6682,4 +6682,4 @@ testing = ["coverage[toml]", "zope.event", "zope.testing"]
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.12,<3.13"
-content-hash = "5b5629e1af96ac6ddaa28c618cd357a7c6d9d1be6bae644b9915044aa76ef47d"
+content-hash = "370641df0ce849b6436d9c2c7dd948e1c7e64d608feb8f51de5086c44ac2660c"
