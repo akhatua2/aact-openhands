@@ -12,7 +12,7 @@ from aact import Message, NodeFactory, Node
 from aact.messages import Text, DataModel
 from aact.messages.commons import DataEntry
 
-from openhands_node.utils import AgentAction, ActionType
+from aact_openhands.utils import AgentAction, ActionType
 
 from openhands.core.config import AgentConfig, AppConfig, SandboxConfig
 from openhands.core.logger import openhands_logger as logger

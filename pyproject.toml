@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "openhands_node"
+name = "aact_openhands"
 version = "0.0.1"
 description = "Openhands integrated with aact"
 authors = ["Arpandeep Khatua <arpandeepk@gmail.com>"]
@@ -14,10 +14,10 @@ openhands-ai = "0.13.1"
 rich = ">=13.6.0,<14.0.0"
 python-dotenv = "^1.0.0"
 
-[build-system]
-requires = ["poetry-core>=1.0.0"]
-build-backend = "poetry.core.masonry.api"
-
 [tool.poetry.dev-dependencies]
 mypy = "^1.0.0"
 ruff = "^0.0.262"
+
+[build-system]
+requires = ["poetry-core >= 1.0.0"]
+build-backend = "poetry.core.masonry.api"
