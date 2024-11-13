@@ -6,6 +6,7 @@ import sys
 from typing import Any, AsyncIterator, Optional
 
 from rich.logging import RichHandler
+from dotenv import load_dotenv  # Import the load_dotenv function
 
 from aact import Message, NodeFactory, Node
 from aact.messages import Text, DataModel
@@ -32,6 +33,8 @@ else:
     from typing_extensions import Self
 
 BASE_CONTAINER_IMAGE = "docker.all-hands.dev/all-hands-ai/runtime:0.11-nikolaik"
+
+load_dotenv()
 
 # Configuration for logging
 FORMAT = "%(asctime)s - %(levelname)s - %(name)s - %(message)s"
@@ -69,12 +72,10 @@ class OpenHands(Node[DataModel, Text]):
         Initializes the runtime environment with the specified configuration.
         """
         start_time = time.time()
-        modal_api_token_id = os.environ.get("MODAL_API_TOKEN_ID", "")
-        modal_api_token_secret = os.environ.get("MODAL_API_TOKEN_SECRET", "")
-        allhands_api_key = os.environ.get("ALLHANDS_API_KEY", None)
-        sandbox_remote_runtime_api_url = os.environ.get(
-            "SANDBOX_REMOTE_RUNTIME_API_URL", ""
-        )
+        modal_api_token_id = os.getenv("MODAL_API_TOKEN_ID", "")
+        modal_api_token_secret = os.getenv("MODAL_API_TOKEN_SECRET", "")
+        allhands_api_key = os.getenv("ALLHANDS_API_KEY", None)
+        sandbox_remote_runtime_api_url = os.getenv("SANDBOX_REMOTE_RUNTIME_API_URL", "")
         
         if not modal_api_token_id or not modal_api_token_secret:
             logger.warning("Modal API tokens are not set. Check environment variables.")

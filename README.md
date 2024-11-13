@@ -30,6 +30,30 @@ To set up the project, ensure you have Python 3.12 installed. Then, follow these
    poetry install
    ```
 
+## Setting Up Environment Variables
+
+To run the OpenHands node, you need to set up your environment variables. Follow these steps:
+
+1. **Obtain Modal API Keys**:
+   - **Sign Up / Log In**: Go to the [Modal website](https://modal.com) and sign up or log in to your account.
+   - **Navigate to API Keys**: Once logged in, navigate to the API keys section, usually found under account settings.
+   - **Generate API Keys**: Generate a new API key pair. You should receive a `MODAL_API_TOKEN_ID` and a `MODAL_API_TOKEN_SECRET`.
+   - **Secure Your Keys**: Store these keys securely. Do not share them publicly or commit them to version control.
+
+2. **Create a `.env` File**: Copy the `env.example` file to a new file named `.env` in the root of your project directory:
+
+   ```bash
+   cp env.example .env
+   ```
+
+3. **Edit the `.env` File**: Open the `.env` file and replace the placeholder values with your actual API keys and URLs:
+
+   ```
+   MODAL_API_TOKEN_ID=your_actual_modal_api_token_id
+   MODAL_API_TOKEN_SECRET=your_actual_modal_api_token_secret
+   ```
+
+
 ## Usage
 
 ### Running the OpenHands Node
