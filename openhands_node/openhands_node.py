@@ -157,7 +157,7 @@ class OpenHands(Node[DataModel, Text]):
                 f"Received observation: {str(obs).splitlines()[:2]}",
                 extra={"msg_type": "OBSERVATION"},
             )
-            return Text(text=str(obs))
+            return Text(text=str(obs)) # type: ignore[call-arg]
         except Exception as e:
             logger.error(f"Error executing action: {e}")
             return None
@@ -246,6 +246,6 @@ class OpenHands(Node[DataModel, Text]):
                 await self.queue.put(data_entry)
             else:
                 logger.warning(f"Unrecognized input channel: {input_channel}")
-                yield input_channel, Message[Text](data=Text(text=""))
+                yield input_channel, Message[Text](data=Text(text="")) # type: ignore[call-arg]
         except Exception as e:
             logger.error(f"Error handling event: {e}")
