@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "aact_openhands"
-version = "0.0.2"
+version = "0.0.3"
 description = "Openhands integrated with aact"
 authors = ["Arpandeep Khatua <arpandeepk@gmail.com>"]
 license = "MIT"
@@ -10,7 +10,7 @@ keywords = []
 [tool.poetry.dependencies]
 python = ">=3.12,<3.13"
 aact = "*"
-openhands-ai = "0.13.1"
+openhands-ai = {path = "openhands", develop = true}
 rich = ">=13.6.0,<14.0.0"
 python-dotenv = "^1.0.0"
 

@@ -32,7 +32,7 @@ if sys.version_info >= (3, 11):
 else:
     from typing_extensions import Self
 
-BASE_CONTAINER_IMAGE = "docker.all-hands.dev/all-hands-ai/runtime:0.11-nikolaik"
+BASE_CONTAINER_IMAGE = "docker.all-hands.dev/all-hands-ai/runtime:0.14-nikolaik"
 
 load_dotenv()
 
@@ -52,6 +52,7 @@ class OpenHands(Node[DataModel, Text]):
         self,
         input_channels: list[str],
         output_channels: list[str],
+        modal_session_id: str,
         redis_url: str,
     ):
         super().__init__(
@@ -66,6 +67,7 @@ class OpenHands(Node[DataModel, Text]):
         self.queue: asyncio.Queue[DataEntry[DataModel]] = asyncio.Queue()
         self.task: asyncio.Task[None] | None = None
         self.runtime: Optional[Runtime] = None
+        self.modal_session_id: str = modal_session_id
 
     async def init_runtime(self) -> None:
         """
@@ -88,6 +90,7 @@ class OpenHands(Node[DataModel, Text]):
                 runtime="modal",
                 modal_api_token_id=modal_api_token_id,
                 modal_api_token_secret=modal_api_token_secret,
+                modal_session_id=self.modal_session_id,
                 sandbox=SandboxConfig(
                     base_container_image=BASE_CONTAINER_IMAGE,
                     enable_auto_lint=True,
@@ -156,7 +159,7 @@ class OpenHands(Node[DataModel, Text]):
             logger.info(f"Executing action: {action}", extra={"msg_type": "ACTION"})
             obs = self.runtime.run_action(action_obj)
             logger.info(
-                f"Received observation: {str(obs).splitlines()[:2]}",
+                f"Received observation: {str(obs).splitlines()[:10]}",
                 extra={"msg_type": "OBSERVATION"},
             )
             return Text(text=str(obs)) # type: ignore[call-arg]
@@ -254,3 +257,6 @@ class OpenHands(Node[DataModel, Text]):
                     Message[Text](data=Text(text="")) #type:ignore[call-arg]
         except Exception as e:
             logger.error(f"Error handling event: {e}")
+            
+            
+#poetry run aact run-dataflow examples/openhands_node.toml
