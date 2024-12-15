@@ -9,10 +9,15 @@ on:
 jobs:
   publish:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
+        with:
+          fetch-depth: 0  # Fetch all history for proper versioning
 
       - name: Set up Python
         uses: actions/setup-python@v2
@@ -24,7 +29,17 @@ jobs:
           python -m pip install --upgrade pip
           pip install poetry
 
-      - name: Build and Publish
+      - name: Configure Poetry
         run: |
-          poetry build
-          poetry publish --username __token__ --password ${{ secrets.PYPI_TOKEN }}
+          poetry config virtualenvs.create false
+
+      - name: Install dependencies
+        run: poetry install --no-interaction --no-root
+
+      - name: Build package
+        run: poetry build
+
+      - name: Publish to PyPI
+        env:
+          POETRY_PYPI_TOKEN_PYPI: ${{ secrets.PYPI_TOKEN }}
+        run: poetry publish --no-interaction

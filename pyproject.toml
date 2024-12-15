@@ -6,17 +6,20 @@ authors = ["Arpandeep Khatua <arpandeepk@gmail.com>"]
 license = "MIT"
 readme = "README.md"
 keywords = []
+packages = [
+    { include = "aact_openhands" },
+    { include = "openhands", from = "openhands" }
+]
 
 [tool.poetry.dependencies]
 python = ">=3.12,<3.13"
 aact = "*"
-openhands-ai = {path = "openhands", develop = true}
 rich = ">=13.6.0,<14.0.0"
 python-dotenv = "^1.0.0"
 flask = "^3.0.0"
 flask-cors = "^4.0.0"
 
-[tool.poetry.dev-dependencies]
+[tool.poetry.group.dev.dependencies]
 mypy = "^1.0.0"
 ruff = "^0.0.262"
 
