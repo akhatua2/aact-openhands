@@ -46,7 +46,8 @@ class AACTProcess:
                 ['poetry', 'run', 'aact', 'run-dataflow', self._config_path],
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
-                text=True
+                text=True,
+                bufsize=1  # Line buffered
             )
             
             self.status = 'running'
@@ -62,11 +63,19 @@ class AACTProcess:
     def stop(self):
         """Stop the AACT process"""
         if self._process:
+            # Close any open streams
+            if self._process.stdout:
+                self._process.stdout.close()
+            if self._process.stderr:
+                self._process.stderr.close()
+                
             self._process.terminate()
             try:
                 self._process.wait(timeout=5)
             except subprocess.TimeoutExpired:
                 self._process.kill()
+                self._process.wait()  # Ensure process is fully cleaned up
+            
             self._process = None
         
         if os.path.exists(self._config_path):
@@ -89,14 +98,25 @@ class AACTProcess:
                 'success': None
             }
         
-        # Process finished
+        # Process finished - read output and close streams
         stdout, stderr = self._process.communicate()
         success = self._process.returncode == 0
+        
+        # Close streams explicitly
+        if self._process.stdout:
+            self._process.stdout.close()
+        if self._process.stderr:
+            self._process.stderr.close()
+            
         return {
             'status': 'completed',
             'output': stdout if success else stderr,
             'success': success
         }
+
+    def __del__(self):
+        """Ensure cleanup on object destruction"""
+        self.stop()
 
 # Global process manager
 process_manager = AACTProcess()

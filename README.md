@@ -11,6 +11,12 @@ This project integrates the Openhands framework with AAct to create a runtime en
   - `utils.py`: Contains utility classes and functions, including `AgentAction` and `ActionType`.
   - `__init__.py`: Marks the directory as a Python package.
 
+- `app.py`: Flask server for managing AACT dataflow processes.
+- `tests/`: Contains test files for the project.
+  - `test_server.py`: Unit tests for the Flask server endpoints.
+  - `test_live_server.py`: Integration tests for AACT command execution.
+  - `__init__.py`: Marks the directory as a Python package.
+
 - `examples/`: Contains example configuration files.
   - `openhands_node.toml`: Configuration file for running the OpenHands node.
 
@@ -53,6 +59,51 @@ To run the OpenHands node, you need to set up your environment variables. Follow
    MODAL_API_TOKEN_SECRET=your_actual_modal_api_token_secret
    ```
 
+## Flask Server
+
+The project includes a Flask server (`app.py`) that manages AACT dataflow processes. The server provides the following endpoints:
+
+- `GET /health`: Health check endpoint
+- `POST /run-dataflow`: Start a new AACT dataflow process
+- `GET /status`: Get the status of the current process
+
+### Running the Server
+
+To start the Flask server:
+```bash
+poetry run python app.py
+```
+
+The server will start on `http://localhost:5000`.
+
+## Testing
+
+The project includes both unit tests and integration tests:
+
+### Running Tests
+
+To run all tests:
+```bash
+./run_tests.sh
+```
+
+This script will:
+1. Run unit tests for the Flask server
+2. Start the Flask server
+3. Run integration tests for AACT command execution
+4. Clean up all processes and temporary files
+
+### Test Structure
+
+- **Unit Tests** (`tests/test_server.py`):
+  - Tests Flask server endpoints
+  - Verifies server responses and process management
+  - Runs without actual AACT process execution
+
+- **Integration Tests** (`tests/test_live_server.py`):
+  - Tests actual AACT command execution
+  - Verifies process startup and management
+  - Includes proper resource cleanup
 
 ## Usage
 
@@ -71,7 +122,6 @@ Upon successful execution, you should see output similar to the following:
 16:41:26 - openhands:INFO: openhands_node.py:122 - --------------------
 16:41:26 - openhands:INFO: openhands_node.py:127 - Runtime initialization took 157.77 seconds.
 ```
-
 
 ## Troubleshooting
 

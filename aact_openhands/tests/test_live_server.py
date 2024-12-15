@@ -12,7 +12,7 @@ class AACTCommandTest:
     """Test AACT command functionality"""
     
     def __init__(self):
-        self.config_path = 'test_config.toml'
+        self.config_path = os.path.join(os.path.dirname(__file__), 'test_config.toml')
         self.process = None
         
     def setup(self):
@@ -34,14 +34,24 @@ modal_session_id = "ap"
             
     def cleanup(self):
         """Clean up resources"""
-        if self.process and self.process.poll() is None:
-            logger.info("Terminating AACT process...")
-            self.process.terminate()
-            try:
-                self.process.wait(timeout=5)
-            except subprocess.TimeoutExpired:
-                logger.warning("Process didn't terminate, forcing...")
-                self.process.kill()
+        if self.process:
+            # Close any open streams
+            if self.process.stdout:
+                self.process.stdout.close()
+            if self.process.stderr:
+                self.process.stderr.close()
+                
+            if self.process.poll() is None:
+                logger.info("Terminating AACT process...")
+                self.process.terminate()
+                try:
+                    self.process.wait(timeout=5)
+                except subprocess.TimeoutExpired:
+                    logger.warning("Process didn't terminate, forcing...")
+                    self.process.kill()
+                    self.process.wait()  # Ensure process is fully cleaned up
+            
+            self.process = None
         
         if os.path.exists(self.config_path):
             os.remove(self.config_path)
@@ -57,7 +67,8 @@ modal_session_id = "ap"
                 ['poetry', 'run', 'aact', 'run-dataflow', self.config_path],
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
-                text=True
+                text=True,
+                bufsize=1  # Line buffered
             )
             
             # Wait to see if it starts properly
@@ -69,7 +80,7 @@ modal_session_id = "ap"
                 print("\n✅ Test passed: AACT command started successfully")
                 return True
             else:
-                # Process exited early
+                # Process exited early - read output and close streams
                 stdout, stderr = self.process.communicate()
                 logger.error(f"Process exited early with return code: {self.process.returncode}")
                 logger.error(f"stdout: {stdout}")
@@ -83,6 +94,10 @@ modal_session_id = "ap"
             return False
         finally:
             self.cleanup()
+            
+    def __del__(self):
+        """Ensure cleanup on object destruction"""
+        self.cleanup()
 
 def main():
     """Main test runner"""
@@ -92,4 +107,4 @@ def main():
     sys.exit(0 if success else 1)
 
 if __name__ == "__main__":
-    main()
+    main() 

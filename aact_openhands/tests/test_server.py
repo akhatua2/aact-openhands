@@ -1,5 +1,10 @@
 import unittest
 import json
+import sys
+import os
+
+# Add parent directory to path to import app
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from app import app
 
 class TestFlaskEndpoints(unittest.TestCase):
@@ -40,4 +45,4 @@ class TestFlaskEndpoints(unittest.TestCase):
         self.assertEqual(second_data['status'], 'started')
 
 if __name__ == '__main__':
-    unittest.main()
+    unittest.main() 

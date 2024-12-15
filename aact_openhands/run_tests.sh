@@ -11,7 +11,7 @@ cleanup() {
     if [ ! -z "$SERVER_PID" ]; then
         kill -9 $SERVER_PID 2>/dev/null || true
     fi
-    rm -f server.log test_config.toml temp_config.toml 2>/dev/null
+    rm -f server.log tests/test_config.toml temp_config.toml 2>/dev/null
 }
 
 # Set trap for cleanup
@@ -25,7 +25,7 @@ lsof -ti:5000 | xargs kill -9 2>/dev/null || true
 
 # Run unit tests
 echo -e "\n${GREEN}Running unit tests...${NC}"
-poetry run python test_server.py -v
+poetry run python -m tests.test_server
 
 # Start the Flask server in the background
 echo -e "\n${GREEN}Starting Flask server...${NC}"
@@ -50,7 +50,7 @@ done
 
 # Run live server tests
 echo -e "\n${GREEN}Running live server tests...${NC}"
-poetry run python test_live_server.py
+poetry run python -m tests.test_live_server
 TEST_EXIT_CODE=$?
 
 # On failure, show server logs
