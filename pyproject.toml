@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "aact_openhands"
-version = "0.0.3"
+version = "0.0.4"
 description = "Openhands integrated with aact"
 authors = ["Arpandeep Khatua <arpandeepk@gmail.com>"]
 license = "MIT"
