@@ -6,7 +6,7 @@ This project integrates the Openhands framework with AAct to create a runtime en
 
 ## Project Structure
 
-- `openhands/`: Contains the core implementation of the Openhands node and related utilities.
+- `aact_openhands/`: Contains the core implementation of the Openhands node and related utilities.
   - `openhands_node.py`: Main implementation of the OpenHands node.
   - `utils.py`: Contains utility classes and functions, including `AgentAction` and `ActionType`.
   - `__init__.py`: Marks the directory as a Python package.
