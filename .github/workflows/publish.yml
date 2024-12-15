@@ -1,4 +1,4 @@
-name: Publish Python Package
+name: Publish to PyPI
 
 on:
   push:
@@ -24,36 +24,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install poetry
 
-      - name: Install dependencies
-        run: poetry install
-
-      - name: Get current package version from pyproject.toml
-        id: get_version
-        run: echo "PACKAGE_VERSION=$(poetry version -s)" >> $GITHUB_ENV
-
-      - name: Get latest version from PyPI
-        id: get_pypi_version
-        run: |
-          PACKAGE_NAME=$(poetry version | awk '{print $1}')
-          PYPI_VERSION=$(python -c "import requests; response = requests.get(f'https://pypi.org/pypi/{PACKAGE_NAME}/json'); print(response.json().get('info', {}).get('version', '0.0.0'))")
-          echo "PYPI_VERSION=${PYPI_VERSION}" >> $GITHUB_ENV
-
-      - name: Compare versions
-        id: check_version
-        run: |
-          if [ "$(printf '%s\n' "$PACKAGE_VERSION" "$PYPI_VERSION" | sort -V | head -n1)" != "$PACKAGE_VERSION" ]; then
-            echo "New version exists. Proceeding with publishing."
-            echo "should_publish=true" >> $GITHUB_ENV
-          else
-            echo "No new version to publish."
-            echo "should_publish=false" >> $GITHUB_ENV
-
-      - name: Publish to PyPI
-        if: env.should_publish == 'true'
+      - name: Build and Publish
         run: |
           poetry build
           poetry publish --username __token__ --password ${{ secrets.PYPI_TOKEN }}
-
-      - name: Notify about no new version
-        if: env.should_publish == 'false'
-        run: echo "The package is up to date. No new version to publish."
