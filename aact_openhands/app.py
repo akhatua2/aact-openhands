@@ -1,8 +1,7 @@
-from flask import Flask, request, jsonify
+from flask import Flask, jsonify
 import subprocess
 import os
 from dotenv import load_dotenv
-import threading
 import logging
 
 # Configure logging

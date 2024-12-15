@@ -82,7 +82,8 @@ modal_session_id = "ap"
             else:
                 # Process exited early - read output and close streams
                 stdout, stderr = self.process.communicate()
-                logger.error(f"Process exited early with return code: {self.process.returncode}")
+                logger.error(f"Process exited early with return code: \
+                    {self.process.returncode}")
                 logger.error(f"stdout: {stdout}")
                 logger.error(f"stderr: {stderr}")
                 print("\n❌ Test failed: Process exited unexpectedly")
