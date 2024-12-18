@@ -1,111 +1,133 @@
 import subprocess
-import sys
 import logging
 import time
-import os
+import requests
+import pytest
+import json
+from aact_openhands.app import app
 
 # Configure logging
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
-class AACTCommandTest:
-    """Test AACT command functionality"""
+@pytest.fixture
+def client():
+    """Create a test client for the Flask app"""
+    with app.test_client() as client:
+        yield client
+
+@pytest.fixture
+def live_server():
+    """Start the Flask server for testing"""
+    port = 5000
+    process = subprocess.Popen(
+        ['poetry', 'run', 'python', 'aact_openhands/app.py'],
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE
+    )
     
-    def __init__(self):
-        self.config_path = os.path.join(os.path.dirname(__file__), 'test_config.toml')
-        self.process = None
-        
-    def setup(self):
-        """Set up test configuration"""
-        config_content = """redis_url = "redis://localhost:6379/0"
-extra_modules = ["aact_openhands.openhands_node"]
+    # Wait for server to start
+    time.sleep(2)
+    
+    yield f"http://localhost:{port}"
+    
+    # Cleanup
+    process.terminate()
+    try:
+        process.wait(timeout=5)
+    except subprocess.TimeoutExpired:
+        process.kill()
+        process.wait()
 
-[[nodes]]
-node_name = "runtime"
-node_class = "openhands"
+class TestLiveServer:
+    """Test AACT command functionality with live server"""
+    
+    def test_browse_action(self, live_server):
+        """Test BROWSE action endpoint"""
+        browse_data = {
+            'agent_name': 'test_agent',
+            'action_type': 'browse',
+            'argument': 'https://example.com'
+        }
+        print(f"\nSending BROWSE request: {json.dumps(browse_data, indent=2)}")
+        response = requests.post(
+            f"{live_server}/action",
+            json=browse_data
+        )
+        print(f"Response: {json.dumps(response.json(), indent=2)}")
+        assert response.status_code == 200
+        data = response.json()
+        assert data['status'] == 'success'
+        assert data['action_type'] == 'browse'
 
-[nodes.node_args]
-output_channels = ["Runtime:Agent"]
-input_channels = ["Agent:Runtime"]
-modal_session_id = "ap"
-"""
-        with open(self.config_path, 'w') as f:
-            f.write(config_content)
-            
-    def cleanup(self):
-        """Clean up resources"""
-        if self.process:
-            # Close any open streams
-            if self.process.stdout:
-                self.process.stdout.close()
-            if self.process.stderr:
-                self.process.stderr.close()
-                
-            if self.process.poll() is None:
-                logger.info("Terminating AACT process...")
-                self.process.terminate()
-                try:
-                    self.process.wait(timeout=5)
-                except subprocess.TimeoutExpired:
-                    logger.warning("Process didn't terminate, forcing...")
-                    self.process.kill()
-                    self.process.wait()  # Ensure process is fully cleaned up
-            
-            self.process = None
-        
-        if os.path.exists(self.config_path):
-            os.remove(self.config_path)
-            
-    def run_test(self):
-        """Run the integration test"""
-        try:
-            self.setup()
-            
-            # Start the AACT process
-            logger.info("Starting AACT process...")
-            self.process = subprocess.Popen(
-                ['poetry', 'run', 'aact', 'run-dataflow', self.config_path],
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
-                text=True,
-                bufsize=1  # Line buffered
-            )
-            
-            # Wait to see if it starts properly
-            time.sleep(2)
-            
-            # Check if process is running
-            if self.process.poll() is None:
-                logger.info("Process started successfully and is running")
-                print("\n✅ Test passed: AACT command started successfully")
-                return True
-            else:
-                # Process exited early - read output and close streams
-                stdout, stderr = self.process.communicate()
-                logger.error(f"Process exited early with return code: \
-                    {self.process.returncode}")
-                logger.error(f"stdout: {stdout}")
-                logger.error(f"stderr: {stderr}")
-                print("\n❌ Test failed: Process exited unexpectedly")
-                return False
-                
-        except Exception as e:
-            logger.error("Test failed with error", exc_info=True)
-            print(f"\n❌ Test failed with error: {str(e)}")
-            return False
-        finally:
-            self.cleanup()
-            
-    def __del__(self):
-        """Ensure cleanup on object destruction"""
-        self.cleanup()
+    def test_run_action(self, live_server):
+        """Test RUN action endpoint"""
+        run_data = {
+            'agent_name': 'test_agent',
+            'action_type': 'run',
+            'argument': 'ls -la'
+        }
+        print(f"\nSending RUN request: {json.dumps(run_data, indent=2)}")
+        response = requests.post(
+            f"{live_server}/action",
+            json=run_data
+        )
+        print(f"Response: {json.dumps(response.json(), indent=2)}")
+        assert response.status_code == 200
+        data = response.json()
+        assert data['status'] == 'success'
+        assert data['action_type'] == 'run'
 
-def main():
-    """Main test runner"""
-    print("Testing AACT command...")
-    test = AACTCommandTest()
-    success = test.run_test()
-    sys.exit(0 if success else 1)
+    def test_write_action(self, live_server):
+        """Test WRITE action endpoint"""
+        write_data = {
+            'agent_name': 'test_agent',
+            'action_type': 'write',
+            'argument': 'test content',
+            'path': 'test.txt'
+        }
+        print(f"\nSending WRITE request: {json.dumps(write_data, indent=2)}")
+        response = requests.post(
+            f"{live_server}/action",
+            json=write_data
+        )
+        print(f"Response: {json.dumps(response.json(), indent=2)}")
+        assert response.status_code == 200
+        data = response.json()
+        assert data['status'] == 'success'
+        assert data['action_type'] == 'write'
 
-if __name__ == "__main__":
-    main() 
+    def test_read_action(self, live_server):
+        """Test READ action endpoint"""
+        read_data = {
+            'agent_name': 'test_agent',
+            'action_type': 'read',
+            'path': 'test.txt'
+        }
+        print(f"\nSending READ request: {json.dumps(read_data, indent=2)}")
+        response = requests.post(
+            f"{live_server}/action",
+            json=read_data
+        )
+        print(f"Response: {json.dumps(response.json(), indent=2)}")
+        assert response.status_code == 200
+        data = response.json()
+        assert data['status'] == 'success'
+        assert data['action_type'] == 'read'
+
+    def test_invalid_action(self, live_server):
+        """Test invalid action type"""
+        invalid_data = {
+            'agent_name': 'test_agent',
+            'action_type': 'invalid_type',
+            'argument': 'test'
+        }
+        print(f"\nSending INVALID request: {json.dumps(invalid_data, indent=2)}")
+        response = requests.post(
+            f"{live_server}/action",
+            json=invalid_data
+        )
+        print(f"Response: {json.dumps(response.json(), indent=2)}")
+        assert response.status_code == 400
+        data = response.json()
+        assert data['status'] == 'error' 

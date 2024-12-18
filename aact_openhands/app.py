@@ -1,8 +1,18 @@
-from flask import Flask, jsonify
+from flask import Flask, jsonify, request
 import subprocess
 import os
 from dotenv import load_dotenv
 import logging
+from typing import Optional, Dict, Any
+from aact_openhands.utils import AgentAction, ActionType
+from aact.messages import Text
+from openhands.events.action import (
+    BrowseURLAction,
+    CmdRunAction,
+    FileWriteAction,
+    FileReadAction,
+    BrowseInteractiveAction,
+)
 
 # Configure logging
 logging.basicConfig(level=logging.DEBUG)
@@ -32,6 +42,57 @@ class AACTProcess:
         self.success = None
         self._process = None
         self._config_path = 'temp_config.toml'
+        self.runtime = None
+
+    def _create_action(self, observation: AgentAction) -> Any:
+        """
+        Creates an action based on the observation's action type.
+        
+        Args:
+            observation (AgentAction): The observation containing 
+            the action type and arguments.
+            
+        Returns:
+            Any: The created action object
+        """
+        action_type = observation.action_type
+        argument = observation.argument
+        path = observation.path
+
+        if action_type == ActionType.BROWSE:
+            return BrowseURLAction(url=argument)
+        elif action_type == ActionType.BROWSE_ACTION:
+            return BrowseInteractiveAction(browser_actions=argument)
+        elif action_type == ActionType.RUN:
+            return CmdRunAction(command=argument)
+        elif action_type == ActionType.WRITE:
+            if path is None:
+                raise ValueError("Path cannot be None for WRITE action")
+            return FileWriteAction(path=path, content=argument)
+        elif action_type == ActionType.READ:
+            if path is None:
+                raise ValueError("Path cannot be None for READ action")
+            return FileReadAction(path=path)
+        else:
+            raise ValueError(f"Unsupported action type: {action_type}")
+
+    def execute_action(self, action: AgentAction) -> Optional[str]:
+        """
+        Execute an action and return its result.
+        
+        Args:
+            action (AgentAction): The action to execute
+            
+        Returns:
+            Optional[str]: The result of the action or None if runtime not available
+        """
+        try:
+            action_obj = self._create_action(action)
+            # For testing, just return a string representation
+            return str(action_obj)
+        except Exception as e:
+            logger.error(f"Error executing action: {e}")
+            raise
 
     def start(self):
         """Start the AACT process"""
@@ -152,6 +213,42 @@ def get_status():
 def health_check():
     """Health check endpoint"""
     return jsonify({'status': 'ok'})
+
+@app.route('/action', methods=['POST'])
+def handle_action():
+    """Handle different types of actions"""
+    try:
+        data = request.get_json()
+        if not data:
+            return jsonify({'error': 'No data provided'}), 400
+            
+        action = AgentAction(
+            agent_name=data.get('agent_name', 'default'),
+            action_type=ActionType(data.get('action_type')),
+            argument=data.get('argument', ''),
+            path=data.get('path')
+        )
+        
+        result = process_manager.execute_action(action)
+        if result is None:
+            return jsonify({'status': 'error', 'error': 'Runtime not available'}), 503
+            
+        # Convert result to Text object
+        text_result = Text(text=str(result))
+        
+        response: Dict[str, Any] = {
+            'status': 'success',
+            'action_type': str(action.action_type),
+            'result': text_result.text
+        }
+        
+        return jsonify(response)
+        
+    except ValueError as e:
+        return jsonify({'status': 'error', 'error': str(e)}), 400
+    except Exception as e:
+        logger.error(f"Error handling action: {e}")
+        return jsonify({'status': 'error', 'error': str(e)}), 500
 
 if __name__ == '__main__':
     try:

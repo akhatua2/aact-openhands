@@ -131,6 +131,10 @@ If you encounter a `ModuleNotFoundError`, ensure that:
 - The `openhands` directory contains an `__init__.py` file.
 - The `pyproject.toml` file includes the `openhands` package in the `[tool.poetry.packages]` section.
 
+## API Documentation
+
+For detailed information about using the action endpoint and its supported operations, please refer to the [Action Endpoint Documentation](aact_openhands/README.md).
+
 ## License
 
 This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
