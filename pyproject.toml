@@ -22,6 +22,7 @@ flask-cors = "^4.0.0"
 [tool.poetry.group.dev.dependencies]
 mypy = "^1.0.0"
 ruff = "^0.0.262"
+types-requests = "^2.32.0.20241016"
 
 [build-system]
 requires = ["poetry-core >= 1.0.0"]
