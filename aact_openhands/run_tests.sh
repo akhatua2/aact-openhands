@@ -1,62 +1,39 @@
 #!/bin/bash
 
-# Colors for output
-GREEN='\033[0;32m'
-RED='\033[0;31m'
-NC='\033[0m' # No Color
+# Start timing
+start_time=$(date +%s.%N)
 
-# Function to cleanup processes
-cleanup() {
-    echo -e "\n${GREEN}Cleaning up...${NC}"
-    if [ ! -z "$SERVER_PID" ]; then
-        kill -9 $SERVER_PID 2>/dev/null || true
-    fi
-    rm -f server.log tests/test_config.toml temp_config.toml 2>/dev/null
-}
-
-# Set trap for cleanup
-trap cleanup EXIT
-
-echo "Running Flask server tests..."
-
-# Cleanup any existing Flask processes
-echo -e "\n${GREEN}Cleaning up existing processes...${NC}"
-lsof -ti:5000 | xargs kill -9 2>/dev/null || true
-
-# Run unit tests
-echo -e "\n${GREEN}Running unit tests...${NC}"
-poetry run python -m tests.test_server
-
-# Start the Flask server in the background
-echo -e "\n${GREEN}Starting Flask server...${NC}"
-poetry run python app.py > server.log 2>&1 &
+# Start the Flask server using poetry in the background
+echo "Starting Flask server..."
+poetry run python aact_openhands/app.py &
 SERVER_PID=$!
 
-# Wait for server to start and verify it's running
-echo "Waiting for server to start..."
-for i in {1..10}; do
-    if curl -s http://localhost:5000/health > /dev/null 2>&1; then
-        echo "Server is up!"
-        break
-    fi
-    if [ $i -eq 10 ]; then
-        echo -e "${RED}Server failed to start${NC}"
-        cat server.log
-        exit 1
-    fi
-    echo "Attempt $i: Server not ready yet..."
-    sleep 1
-done
+# Wait for server to start
+echo "Waiting for server to initialize..."
+sleep 2
 
-# Run live server tests
-echo -e "\n${GREEN}Running live server tests...${NC}"
-poetry run python -m tests.test_live_server
-TEST_EXIT_CODE=$?
+# Run the test file
+echo "Running tests..."
+poetry run python aact_openhands/tests/test_app.py
 
-# On failure, show server logs
-if [ $TEST_EXIT_CODE -ne 0 ]; then
-    echo -e "\n${RED}Test failed. Server logs:${NC}"
-    cat server.log
+# Store the test exit status
+TEST_STATUS=$?
+
+# Kill the Flask server
+echo -e "\n\nStopping Flask server..."
+kill $SERVER_PID
+
+# Calculate execution time
+end_time=$(date +%s.%N)
+execution_time=$(echo "$end_time - $start_time" | bc)
+
+echo -e "\nTotal execution time: ${execution_time} seconds"
+
+# Exit with the test status
+if [ $TEST_STATUS -eq 0 ]; then
+    echo "Tests completed successfully"
+    exit 0
+else
+    echo "Tests failed"
+    exit 1
 fi
-
-exit $TEST_EXIT_CODE

@@ -13,8 +13,6 @@ This project integrates the Openhands framework with AAct to create a runtime en
 
 - `app.py`: Flask server for managing AACT dataflow processes.
 - `tests/`: Contains test files for the project.
-  - `test_server.py`: Unit tests for the Flask server endpoints.
-  - `test_live_server.py`: Integration tests for AACT command execution.
   - `__init__.py`: Marks the directory as a Python package.
 
 - `examples/`: Contains example configuration files.
@@ -64,7 +62,7 @@ To run the OpenHands node, you need to set up your environment variables. Follow
 The project includes a Flask server (`app.py`) that manages AACT dataflow processes. The server provides the following endpoints:
 
 - `GET /health`: Health check endpoint
-- `POST /run-dataflow`: Start a new AACT dataflow process
+- `POST /initialize`: Start a new AACT dataflow process
 - `GET /status`: Get the status of the current process
 
 ### Running the Server
@@ -75,6 +73,114 @@ poetry run python app.py
 ```
 
 The server will start on `http://localhost:5000`.
+
+## Flask Server API Documentation
+
+The Flask server (`app.py`) provides several endpoints to manage the OpenHands runtime:
+
+### Endpoints
+
+#### Initialize Runtime
+- **URL**: `/initialize`
+- **Method**: `POST`
+- **Headers**: `Content-Type: application/json`
+- **Body**:
+  ```json
+  {
+    "output_channels": ["Runtime1234:Agent"],
+    "input_channels": ["Agent:Runtime1234"],
+    "node_name": "runtime",
+    "modal_session_id": "session_id"
+  }
+  ```
+- **Success Response**:
+  - Code: 200
+  - Content: `{"status": "initialized"}`
+- **Error Response**:
+  - Code: 400
+  - Content: `{"error": "Missing required fields"}`
+  - Code: 500
+  - Content: `{"status": "error", "error": "Error message"}`
+
+#### Check Status
+- **URL**: `/status`
+- **Method**: `GET`
+- **Success Response**:
+  - Code: 200
+  - Content:
+    ```json
+    {
+      "status": "running|completed|not_started|error",
+      "output": "output message or null",
+      "success": true|false|null
+    }
+    ```
+
+#### Health Check
+- **URL**: `/health`
+- **Method**: `GET`
+- **Success Response**:
+  - Code: 200
+  - Content: `{"status": "ok"}`
+
+#### Stop Runtime
+- **URL**: `/stop`
+- **Method**: `POST`
+- **Success Response**:
+  - Code: 200
+  - Content: `{"status": "stopped"}`
+- **Error Response**:
+  - Code: 500
+  - Content: `{"status": "error", "error": "Error message"}`
+
+### Example Usage
+
+Using curl:
+```bash
+# Initialize the runtime
+curl -X POST http://localhost:5000/initialize \
+  -H "Content-Type: application/json" \
+  -d '{
+    "output_channels": ["Runtime1234:Agent"],
+    "input_channels": ["Agent:Runtime1234"],
+    "node_name": "runtime",
+    "modal_session_id": "session_id"
+  }'
+
+# Check status
+curl http://localhost:5000/status
+
+# Health check
+curl http://localhost:5000/health
+
+# Stop runtime
+curl -X POST http://localhost:5000/stop
+```
+
+Using Python requests:
+```python
+import requests
+
+# Initialize the runtime
+response = requests.post(
+    'http://localhost:5000/initialize',
+    json={
+        "output_channels": ["Runtime1234:Agent"],
+        "input_channels": ["Agent:Runtime1234"],
+        "node_name": "runtime",
+        "modal_session_id": "session_id"
+    }
+)
+
+# Check status
+status = requests.get('http://localhost:5000/status').json()
+
+# Health check
+health = requests.get('http://localhost:5000/health').json()
+
+# Stop runtime
+stop = requests.post('http://localhost:5000/stop').json()
+```
 
 ## Testing
 
