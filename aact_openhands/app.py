@@ -6,7 +6,7 @@ import logging
 import time
 from redis import Redis
 from aact import Message
-from aact_openhands.utils import AgentAction, ActionType
+from aact_openhands.utils import AgentAction
 
 # Configure logging
 logging.basicConfig(level=logging.DEBUG)
